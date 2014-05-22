@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <title>TODO supply a title</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body>
+        <script src="BigInteger.js-master/BigInteger.js"></script>
+        <script src="BigInteger.js-master/BigInteger.min.js"></script>
+        <canvas id="myCanvas" width="1000" height="2000" style="border:1px solid #c3c3c3;">
+            Your browser does not support the HTML5 canvas tag.
+        </canvas>
+
+        <script>
+            var test = bigInt("56").divmod(11);
+            console.log(test.quotient.toString())
+            console.log(test.remainder.toString())
+            var c = document.getElementById("myCanvas");
+            var ctx = c.getContext("2d");
+
+            var height = Math.sqrt(100 - 25);
+
+            drawGasket([400, 20], "1", Math.pow(2, 6), 160 / Math.pow(2, 4));
+            var ui = 1229782938247304200;
+            var a = 4294967295;
+            var b = 2 * 4294967295;
+            //alert(ui.toString(2));
+            //alert(a.toString(2));
+            var w = 4294967296; // 2^32
+
+            var aHI = a / w;
+            var aLO = a % w;
+            var bHI = b / w;
+            var bLO = b % w;
+
+            //alert((aHI ^ bHI) * w + (aLO ^ bLO));
+
+            function drawGasket(leftCorner, seqNumber, iterations, side = 0) {
+                var binaryNumber = seqNumber.toString(2);
+                var length = binaryNumber.length;
+
+                for (var i = 0; i < length; i++) {
+                    if (binaryNumber.charAt(i) != 0) {
+                        ctx.fillStyle = '#f00';
+                        ctx.beginPath();
+                        ctx.moveTo(leftCorner[0] + i * 10, leftCorner[1]);
+                        ctx.lineTo(leftCorner[0] + (i + 1) * 10, leftCorner[1]);
+                        ctx.lineTo(leftCorner[0] + (i + 1) * 10 - 5, leftCorner[1] - height);
+                        ctx.closePath();
+                        ctx.fill();
+                    }
+                }
+                if (iterations - 1 != 0) {
+                    drawGasket([leftCorner[0] - 5, leftCorner[1] + height], getGasketNextSeqNumber(seqNumber), iterations - 1);
+                }
+                //else {alert(seqNumber);}
+
+            }
+
+/**
+ * 
+ * @param {bigInt} seqNumber
+ * @returns {Number|getGasketNextSeqNumber.biggestInt}
+ */
+            function getGasketNextSeqNumber(seqNumber) {
+                var twoTimesSeqNum = 2 * seqNumber;
+                var biggestInt = 4294967296;
+                var seqNumberDiv = seqNumber / biggestInt;
+                var seqNumberLeftOver = seqNumber % biggestInt;
+                var twoTimesSeqNumDiv = twoTimesSeqNum / biggestInt;
+                var twoTimesSeqNumLeftOver = twoTimesSeqNum % biggestInt;
+                if (twoTimesSeqNumDiv > 4294967296) {
+//                    alert('una');
+                    var nextSeqNumPart = (getGasketNextSeqNumber(seqNumberDiv) >>> 0) * biggestInt + ((seqNumberLeftOver ^ twoTimesSeqNumLeftOver) >>> 0);
+//                    console.log('Una number ' + nextSeqNumPart);
+                    //console.log(nextSeqNumPart);
+                    return nextSeqNumPart;
+                }
+                var nextSeqNumber = (((seqNumberDiv ^ twoTimesSeqNumDiv) >>> 0) * biggestInt) + ((seqNumberLeftOver ^ twoTimesSeqNumLeftOver) >>> 0);
+//                console.log('Real Number ' + nextSeqNumber);
+//                console.log(nextSeqNumber);
+                // alert(seqNumberDiv ^ twoTimesSeqNumDiv);
+                return nextSeqNumber;
+            }
+
+            function bigIntToBinaryStr(bigIntNum){
+                var bigIntNum = bigInt(bigIntNum);
+                bigInt.divide();
+            }
+
+        </script>
+    </body>
+</html>
