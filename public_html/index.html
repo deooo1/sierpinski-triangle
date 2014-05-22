@@ -11,22 +11,22 @@ and open the template in the editor.
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
     </head>
     <body>
-        <script src="BigInteger.js-master/BigInteger.js"></script>
+        <!--<script src="BigInteger.js-master/BigInteger.js"></script>-->
         <script src="BigInteger.js-master/BigInteger.min.js"></script>
         <canvas id="myCanvas" width="1000" height="2000" style="border:1px solid #c3c3c3;">
             Your browser does not support the HTML5 canvas tag.
         </canvas>
 
         <script>
-            var test = bigInt("56").divmod(11);
-            console.log(test.quotient.toString())
-            console.log(test.remainder.toString())
+                    var test = bigInt("18446744078004518913").minus("18446744073709551617");
+                    console.log(test.toString());alert();
+//                    console.log(test.remainder.toString());
+//            var test = bigInt(1567);
+//            console.log(bigIntToBinaryStr(test));
             var c = document.getElementById("myCanvas");
             var ctx = c.getContext("2d");
-
             var height = Math.sqrt(100 - 25);
-
-            drawGasket([400, 20], "1", Math.pow(2, 6), 160 / Math.pow(2, 4));
+            drawGasket([400, 20], "1", Math.pow(2, 7), 160 / Math.pow(2, 4));
             var ui = 1229782938247304200;
             var a = 4294967295;
             var b = 2 * 4294967295;
@@ -38,13 +38,20 @@ and open the template in the editor.
             var aLO = a % w;
             var bHI = b / w;
             var bLO = b % w;
-
             //alert((aHI ^ bHI) * w + (aLO ^ bLO));
 
+            /**
+             * @param {array} leftCorner
+             * @param {string} seqNumber
+             * @param {int} iterations
+             * @param {int} side
+             */
             function drawGasket(leftCorner, seqNumber, iterations, side = 0) {
-                var binaryNumber = seqNumber.toString(2);
+                var binaryNumber = bigIntToBinaryStr(bigInt(seqNumber));
+                
+                 console.log((Math.pow(2, 7) - iterations + 1).toString(10).concat(" .... ", seqNumber, " .... ",  binaryNumber));
+                
                 var length = binaryNumber.length;
-
                 for (var i = 0; i < length; i++) {
                     if (binaryNumber.charAt(i) != 0) {
                         ctx.fillStyle = '#f00';
@@ -63,35 +70,34 @@ and open the template in the editor.
 
             }
 
-/**
- * 
- * @param {bigInt} seqNumber
- * @returns {Number|getGasketNextSeqNumber.biggestInt}
- */
+            /**
+             * 
+             * @param {bigInt} seqNumber
+             * @returns {Number|getGasketNextSeqNumber.biggestInt}
+             */
             function getGasketNextSeqNumber(seqNumber) {
-                var twoTimesSeqNum = 2 * seqNumber;
-                var biggestInt = 4294967296;
-                var seqNumberDiv = seqNumber / biggestInt;
-                var seqNumberLeftOver = seqNumber % biggestInt;
-                var twoTimesSeqNumDiv = twoTimesSeqNum / biggestInt;
-                var twoTimesSeqNumLeftOver = twoTimesSeqNum % biggestInt;
-                if (twoTimesSeqNumDiv > 4294967296) {
-//                    alert('una');
-                    var nextSeqNumPart = (getGasketNextSeqNumber(seqNumberDiv) >>> 0) * biggestInt + ((seqNumberLeftOver ^ twoTimesSeqNumLeftOver) >>> 0);
-//                    console.log('Una number ' + nextSeqNumPart);
-                    //console.log(nextSeqNumPart);
-                    return nextSeqNumPart;
+                var seqNumberBI = bigInt(seqNumber);
+                var twoTimesSeqNum = seqNumberBI.times(2); //bigInt
+                var biggestInt = bigInt(4294967296); //bigInt
+                var seqNumberDiv = seqNumberBI.divide(biggestInt); //bigInt
+                var seqNumberLeftOver = seqNumberBI.divmod(biggestInt).remainder.valueOf(); //int
+                var twoTimesSeqNumDiv = twoTimesSeqNum.divide(biggestInt); //bigInt
+                var twoTimesSeqNumLeftOver = twoTimesSeqNum.divmod(biggestInt).remainder.valueOf(); //int
+                if (twoTimesSeqNumDiv.greater(biggestInt)) {
+                    var nextSeqNumPart = bigInt(getGasketNextSeqNumber(seqNumberDiv.toString())).times(biggestInt).add((seqNumberLeftOver ^ twoTimesSeqNumLeftOver) >>> 0);
+                    return nextSeqNumPart.toString();
                 }
-                var nextSeqNumber = (((seqNumberDiv ^ twoTimesSeqNumDiv) >>> 0) * biggestInt) + ((seqNumberLeftOver ^ twoTimesSeqNumLeftOver) >>> 0);
-//                console.log('Real Number ' + nextSeqNumber);
-//                console.log(nextSeqNumber);
-                // alert(seqNumberDiv ^ twoTimesSeqNumDiv);
-                return nextSeqNumber;
+                var nextSeqNumber = bigInt((seqNumberDiv.valueOf() ^ twoTimesSeqNumDiv.valueOf()) >>> 0).times(biggestInt).add((seqNumberLeftOver ^ twoTimesSeqNumLeftOver) >>> 0);
+                return nextSeqNumber.toString();
             }
 
-            function bigIntToBinaryStr(bigIntNum){
-                var bigIntNum = bigInt(bigIntNum);
-                bigInt.divide();
+            function bigIntToBinaryStr(bigIntNum) {
+                var binaryNumberStr = '';
+                do {
+                    binaryNumberStr = binaryNumberStr.concat(bigIntNum.divmod(2).remainder.toString());
+                    bigIntNum = bigIntNum.divmod(2).quotient;
+                } while (bigIntNum.greater(0))
+                return binaryNumberStr.split("").reverse().join("");
             }
 
         </script>
