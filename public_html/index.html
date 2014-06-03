@@ -6,98 +6,211 @@ and open the template in the editor.
 -->
 <html>
     <head>
-        <title>TODO supply a title</title>
+        <title>Sierpinski's triangle</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
     </head>
-    <body>
+    <body style="text-align: left; margin: 0; padding:0">
+       <h2>Sierpinski's triangle</h2>
         <!--<script src="BigInteger.js-master/BigInteger.js"></script>-->
-        <script src="BigInteger.js-master/BigInteger.min.js"></script>
-        <canvas id="myCanvas" width="1000" height="2000" style="border:1px solid #c3c3c3;">
-            Your browser does not support the HTML5 canvas tag.
-        </canvas>
-
+        <script src="biginteger.js"></script>
+        
+        <div style=" margin: 0 auto; display: block; width: 1000px;">
+            <canvas id="myCanvas" style="border:2px solid #c3c3c3; border-radius: 5px; float: left; margin: 0 auto; display: block;" >
+                Your browser does not support the HTML5 canvas tag.
+            </canvas>
+             <table>
+                 <tr><td>Iterations</td><td><input type="text" id="iterations" onchange="location.reload(false)" value="6" maxlength="2" size="1"></td></tr>
+                 <tr><td>Number of triangles</td><td><span id="triangleCount"></span></td></tr>
+                 <tr><td>Fractional colored area</td><td> <span id="triangleArea"></span></td></tr>
+             </table>
+            
+            <button onclick="location.reload(false)">Reset</button>
+        </div>
         <script>
-                    var test = bigInt("18446744078004518913").minus("18446744073709551617");
-                    console.log(test.toString());alert();
-//                    console.log(test.remainder.toString());
-//            var test = bigInt(1567);
-//            console.log(bigIntToBinaryStr(test));
-            var c = document.getElementById("myCanvas");
-            var ctx = c.getContext("2d");
-            var height = Math.sqrt(100 - 25);
-            drawGasket([400, 20], "1", Math.pow(2, 7), 160 / Math.pow(2, 4));
-            var ui = 1229782938247304200;
-            var a = 4294967295;
-            var b = 2 * 4294967295;
-            //alert(ui.toString(2));
-            //alert(a.toString(2));
-            var w = 4294967296; // 2^32
+            var triangleCount = document.getElementById('triangleCount');
+            triangleCount.innerHTML = Math.pow(3, document.getElementById("iterations").value);
+            var triangleArea = document.getElementById('triangleArea');
+            triangleArea.innerHTML = Math.pow(3 / 4, document.getElementById("iterations").value) + ' of 1';
 
-            var aHI = a / w;
-            var aLO = a % w;
-            var bHI = b / w;
-            var bLO = b % w;
-            //alert((aHI ^ bHI) * w + (aLO ^ bLO));
+            var canvas = document.getElementById("myCanvas");
+            canvas.width = 650;
+            canvas.height = 530;
+            window.onload = function() {
+                var ctx = canvas.getContext("2d");
+                trackTransforms(ctx);
+                var gaketIterations = Math.pow(2, document.getElementById("iterations").value);
+                var side = 64 / gaketIterations * 9;
+                var height = Math.sqrt(side * side - side / 2 * side / 2);
+                drawGasket([canvas.width / 2 - side / 2, 15 + height], "1", gaketIterations, side);
 
-            /**
-             * @param {array} leftCorner
-             * @param {string} seqNumber
-             * @param {int} iterations
-             * @param {int} side
-             */
-            function drawGasket(leftCorner, seqNumber, iterations, side = 0) {
-                var binaryNumber = bigIntToBinaryStr(bigInt(seqNumber));
-                
-                 console.log((Math.pow(2, 7) - iterations + 1).toString(10).concat(" .... ", seqNumber, " .... ",  binaryNumber));
-                
-                var length = binaryNumber.length;
-                for (var i = 0; i < length; i++) {
-                    if (binaryNumber.charAt(i) != 0) {
-                        ctx.fillStyle = '#f00';
-                        ctx.beginPath();
-                        ctx.moveTo(leftCorner[0] + i * 10, leftCorner[1]);
-                        ctx.lineTo(leftCorner[0] + (i + 1) * 10, leftCorner[1]);
-                        ctx.lineTo(leftCorner[0] + (i + 1) * 10 - 5, leftCorner[1] - height);
-                        ctx.closePath();
-                        ctx.fill();
+                /**
+                 * @param {array} leftCorner
+                 * @param {string} seqNumber
+                 * @param {int} iterations
+                 * @param {int} side
+                 */
+                function drawGasket(leftCorner, seqNumber, iterations, side = 0) {
+                    var binaryNumber = BigInteger(seqNumber).toString(2);
+
+                    var length = binaryNumber.length;
+                    for (var i = 0; i < length; i++) {
+                        if (binaryNumber.charAt(i) != 0) {
+                            ctx.fillStyle = '#f00';
+                            ctx.beginPath();
+                            ctx.moveTo(leftCorner[0] + i * side, leftCorner[1]);
+                            ctx.lineTo(leftCorner[0] + (i + 1) * side, leftCorner[1]);
+                            ctx.lineTo(leftCorner[0] + (i + 1) * side - side / 2, leftCorner[1] - height);
+                            ctx.closePath();
+                            ctx.fill();
+                        }
                     }
-                }
-                if (iterations - 1 != 0) {
-                    drawGasket([leftCorner[0] - 5, leftCorner[1] + height], getGasketNextSeqNumber(seqNumber), iterations - 1);
-                }
-                //else {alert(seqNumber);}
+                    if (iterations - 1 != 0) {
+                        drawGasket([leftCorner[0] - side / 2, leftCorner[1] + height], getGasketNextSeqNumber(seqNumber), iterations - 1, side);
+                    }
 
-            }
+                }
+                var lastX = canvas.width / 2, lastY = canvas.height / 2;
+                var dragStart, dragged;
+                canvas.addEventListener('mousedown', function(evt) {
+                    document.body.style.mozUserSelect = document.body.style.webkitUserSelect = document.body.style.userSelect = 'none';
+                    lastX = evt.offsetX || (evt.pageX - canvas.offsetLeft);
+                    lastY = evt.offsetY || (evt.pageY - canvas.offsetTop);
+                    dragStart = ctx.transformedPoint(lastX, lastY);
+                    dragged = false;
+                }, false);
+                canvas.addEventListener('mousemove', function(evt) {
+                    lastX = evt.offsetX || (evt.pageX - canvas.offsetLeft);
+                    lastY = evt.offsetY || (evt.pageY - canvas.offsetTop);
+                    dragged = true;
+                    if (dragStart) {
+                        var pt = ctx.transformedPoint(lastX, lastY);
+                        ctx.translate(pt.x - dragStart.x, pt.y - dragStart.y);
+                        clearCanvas(ctx);
+                        drawGasket([400 - side / 2, 20 + height], "1", gaketIterations, side);
 
+                    }
+                }, false);
+                canvas.addEventListener('mouseup', function(evt) {
+                    dragStart = null;
+                    if (!dragged)
+                        zoom(evt.shiftKey ? -1 : 1);
+                }, false);
+                var scaleFactor = 1.1;
+                var zoom = function(clicks) {
+                    var pt = ctx.transformedPoint(lastX, lastY);
+                    ctx.translate(pt.x, pt.y);
+                    var factor = Math.pow(scaleFactor, clicks);
+                    ctx.scale(factor, factor);
+                    ctx.translate(-pt.x, -pt.y);
+                    clearCanvas(ctx);
+                    drawGasket([400 - side / 2, 20 + height], "1", gaketIterations, side);
+                };
+                var handleScroll = function(evt) {
+                    var delta = evt.wheelDelta ? evt.wheelDelta / 40 : evt.detail ? -evt.detail : 0;
+                    if (delta)
+                        zoom(delta);
+                    return evt.preventDefault() && false;
+                };
+                canvas.addEventListener('DOMMouseScroll', handleScroll, false);
+                canvas.addEventListener('mousewheel', handleScroll, false);
+            };
             /**
              * 
              * @param {bigInt} seqNumber
              * @returns {Number|getGasketNextSeqNumber.biggestInt}
              */
             function getGasketNextSeqNumber(seqNumber) {
-                var seqNumberBI = bigInt(seqNumber);
-                var twoTimesSeqNum = seqNumberBI.times(2); //bigInt
-                var biggestInt = bigInt(4294967296); //bigInt
-                var seqNumberDiv = seqNumberBI.divide(biggestInt); //bigInt
-                var seqNumberLeftOver = seqNumberBI.divmod(biggestInt).remainder.valueOf(); //int
-                var twoTimesSeqNumDiv = twoTimesSeqNum.divide(biggestInt); //bigInt
-                var twoTimesSeqNumLeftOver = twoTimesSeqNum.divmod(biggestInt).remainder.valueOf(); //int
-                if (twoTimesSeqNumDiv.greater(biggestInt)) {
-                    var nextSeqNumPart = bigInt(getGasketNextSeqNumber(seqNumberDiv.toString())).times(biggestInt).add((seqNumberLeftOver ^ twoTimesSeqNumLeftOver) >>> 0);
-                    return nextSeqNumPart.toString();
-                }
-                var nextSeqNumber = bigInt((seqNumberDiv.valueOf() ^ twoTimesSeqNumDiv.valueOf()) >>> 0).times(biggestInt).add((seqNumberLeftOver ^ twoTimesSeqNumLeftOver) >>> 0);
-                return nextSeqNumber.toString();
+                var seqNumberBI = BigInteger(seqNumber);
+                var twoTimesSeqNum = seqNumberBI.multiply(2); //bigInt
+
+                var nextSeqNumBI = bigIntXor(seqNumberBI, twoTimesSeqNum);
+
+                return nextSeqNumBI.toString(10);
             }
 
-            function bigIntToBinaryStr(bigIntNum) {
-                var binaryNumberStr = '';
-                do {
-                    binaryNumberStr = binaryNumberStr.concat(bigIntNum.divmod(2).remainder.toString());
-                    bigIntNum = bigIntNum.divmod(2).quotient;
-                } while (bigIntNum.greater(0))
-                return binaryNumberStr.split("").reverse().join("");
+            function bigIntXor(num1, num2) {
+                var num1Str = num1.toString(2);
+                var num2Str = num2.toString(2);
+                if (num2Str.length > num1Str.length) {
+                    num1Str = "0".concat(num1Str);
+                }
+                strLength = num2Str.length;
+                var binXorStr = "";
+
+                for (var charNum = 0; charNum < strLength; charNum++) {
+                    binXorStr = num1Str.charAt(charNum) === num2Str.charAt(charNum) ? binXorStr.concat("0") : binXorStr.concat("1");
+                    //binXorStr = binXorStr.concat(num1Str.charAt(charNum) ^ num2Str.charAt(charNum));
+                }
+                return BigInteger.parse(binXorStr, 2);
+            }
+
+            function trackTransforms(ctx) {
+                var svg = document.createElementNS("http://www.w3.org/2000/svg", 'svg');
+                var xform = svg.createSVGMatrix();
+                ctx.getTransform = function() {
+                    return xform;
+                };
+                var savedTransforms = [];
+                var save = ctx.save;
+                ctx.save = function() {
+                    savedTransforms.push(xform.translate(0, 0));
+                    return save.call(ctx);
+                };
+                var restore = ctx.restore;
+                ctx.restore = function() {
+                    xform = savedTransforms.pop();
+                    return restore.call(ctx);
+                };
+                var scale = ctx.scale;
+                ctx.scale = function(sx, sy) {
+                    xform = xform.scaleNonUniform(sx, sy);
+                    return scale.call(ctx, sx, sy);
+                };
+                var rotate = ctx.rotate;
+                ctx.rotate = function(radians) {
+                    xform = xform.rotate(radians * 180 / Math.PI);
+                    return rotate.call(ctx, radians);
+                };
+                var translate = ctx.translate;
+                ctx.translate = function(dx, dy) {
+                    xform = xform.translate(dx, dy);
+                    return translate.call(ctx, dx, dy);
+                };
+                var transform = ctx.transform;
+                ctx.transform = function(a, b, c, d, e, f) {
+                    var m2 = svg.createSVGMatrix();
+                    m2.a = a;
+                    m2.b = b;
+                    m2.c = c;
+                    m2.d = d;
+                    m2.e = e;
+                    m2.f = f;
+                    xform = xform.multiply(m2);
+                    return transform.call(ctx, a, b, c, d, e, f);
+                };
+                var setTransform = ctx.setTransform;
+                ctx.setTransform = function(a, b, c, d, e, f) {
+                    xform.a = a;
+                    xform.b = b;
+                    xform.c = c;
+                    xform.d = d;
+                    xform.e = e;
+                    xform.f = f;
+                    return setTransform.call(ctx, a, b, c, d, e, f);
+                };
+                var pt = svg.createSVGPoint();
+                ctx.transformedPoint = function(x, y) {
+                    pt.x = x;
+                    pt.y = y;
+                    return pt.matrixTransform(xform.inverse());
+                }
+            }
+
+            function clearCanvas(ctx) {
+                var p1 = ctx.transformedPoint(0, 0);
+                var p2 = ctx.transformedPoint(canvas.width, canvas.height);
+                ctx.clearRect(p1.x, p1.y, p2.x - p1.x, p2.y - p1.y);
             }
 
         </script>
